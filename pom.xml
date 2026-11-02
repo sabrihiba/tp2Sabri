@@ -30,24 +30,6 @@
             <version>1.6.5</version>
         </dependency>
 
-        <!-- Dépendance du Test 5 : RAG -->
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-easy-rag</artifactId>
-            <version>1.22.0-beta32</version>
-        </dependency>
-
-        <!-- Modèle d'embeddings local BGE Small - Test 4 -->
-        <!-- Désactivé temporairement pour éviter le conflit avec Easy RAG
-
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-embeddings-bge-small-en-v15</artifactId>
-            <version>1.22.0-beta32</version>
-        </dependency>
-
-        -->
-
         <!-- Intégration Gemini -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -56,5 +38,71 @@
         </dependency>
 
     </dependencies>
+
+    <profiles>
+
+        <!-- Profil pour le Test 4 : embeddings -->
+        <profile>
+            <id>test4</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>dev.langchain4j</groupId>
+                    <artifactId>langchain4j-embeddings-bge-small-en-v15</artifactId>
+                    <version>1.22.0-beta32</version>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.14.1</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Test5Rag1.java</exclude>
+                                <exclude>**/Test6Rag2.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Profil pour les Tests 5 et 6 : RAG -->
+        <profile>
+            <id>rag</id>
+
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>dev.langchain4j</groupId>
+                    <artifactId>langchain4j-easy-rag</artifactId>
+                    <version>1.22.0-beta32</version>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.14.1</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Test4Embeddings.java</exclude>
+                                <exclude>**/Test4GoogleEmbeddings.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 
 </project>
