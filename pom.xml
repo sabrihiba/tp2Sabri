@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ma.emsi.sabri</groupId>
@@ -13,26 +14,39 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <dependencies>
+
         <!-- Bibliothèque principale LangChain4j -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <version>1.22.0</version>
         </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.6.5</version>
         </dependency>
 
-        <!-- Modèle d'embeddings local BGE Small -->
+        <!-- Dépendance du Test 5 : RAG -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-easy-rag</artifactId>
+            <version>1.22.0-beta32</version>
+        </dependency>
+
+        <!-- Modèle d'embeddings local BGE Small - Test 4 -->
+        <!-- Désactivé temporairement pour éviter le conflit avec Easy RAG
+
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings-bge-small-en-v15</artifactId>
             <version>1.22.0-beta32</version>
         </dependency>
 
+        -->
 
         <!-- Intégration Gemini -->
         <dependency>
@@ -40,7 +54,7 @@
             <artifactId>langchain4j-google-genai</artifactId>
             <version>1.22.0-beta32</version>
         </dependency>
-    </dependencies>
 
+    </dependencies>
 
 </project>
