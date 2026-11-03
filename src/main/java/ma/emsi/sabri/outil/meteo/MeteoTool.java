@@ -10,11 +10,14 @@ import dev.langchain4j.agent.tool.Tool;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Scanner;
 import java.net.URI;
 
 public class MeteoTool {
+
     @Tool("""
     Retourne true si la probabilité d'avoir de la pluie pour la ville dont on donne la latitude et la longitude
     est importante durant une période de nbJours jours. La période commence nbJourDebut jours après aujourd'hui.
@@ -27,10 +30,10 @@ public class MeteoTool {
             @P(value="Longitude", name="longitude") double longitude,
             @P(value="Nombre de jours après aujourd'hui pour indiquer le début de la période", name="nbJoursDebut") int nbJoursDebut,
             @P(value="Nombre de jours de la période", name="nbJours") int nbJours) {
+
         // Seuil au-delà duquel la probabilité d'avoir de la pluie est suffisante pour prendre un parapluie.
         // A modifier éventuellement, en particulier pour faire des tests.
         double seuilPluie = 25.0;
-        //double seuilPluie = 0.0;
 
         try {
             // Construire l'URL de l'API météo en utilisant les coordonnées et la période spécifiée
@@ -43,6 +46,8 @@ public class MeteoTool {
             // Ouvrir une connexion HTTP
             HttpURLConnection connection = (HttpURLConnection) new URI(apiUri).toURL().openConnection();
             connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
 
             // Lire la réponse
             Scanner scanner = new Scanner(connection.getInputStream());
@@ -84,6 +89,58 @@ public class MeteoTool {
             // En cas d'erreur, on considère qu'on ne peut pas déterminer la météo
             throw new RuntimeException("Erreur lors de la récupération de la météo pour ("
                     + latitude + ", " + longitude + ") : " + e.getMessage());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Tool("Retourne la latitude et la longitude d'une ville à partir de son nom en anglais. Utiliser cet outil pour obtenir les coordonnées géographiques d'une ville avant de consulter les prévisions météo.")
+    public double[] getCoordonnees(
+            @P(value = "Nom de la ville en anglais, éventuellement suivi du pays pour lever une ambiguïté", name = "ville") String ville) {
+
+        try {
+            String baseUrl = "https://geocoding-api.open-meteo.com/v1/search?name=";
+            String apiUri = baseUrl + URLEncoder.encode(ville, StandardCharsets.UTF_8);
+
+            HttpURLConnection connection = (HttpURLConnection) new URI(apiUri).toURL().openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+
+            Scanner scanner = new Scanner(connection.getInputStream());
+            String response = scanner.useDelimiter("\\A").next();
+            scanner.close();
+//            System.out.println("Réponse de l'API de géocodage : " + response);
+
+            // Parser la réponse JSON qui a le format suivant :
+            // (On prend la première correspondance trouvée pour la ville et on retourne ses coordonnées)
+            // {
+            //  "results": [
+            //    {
+            //      "id": 3169070,
+            //      "name": "Rome",
+            //      "latitude": 41.89193,
+            //      "longitude": 12.51133,
+            Gson gson = new Gson();
+            JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
+
+            // Récupérer le tableau "results"
+            if (jsonResponse.has("results")) {
+                JsonArray results = jsonResponse.getAsJsonArray("results");
+
+                if (!results.isEmpty()) {
+                    // Récupérer le 1er élément du tableau results
+                    JsonObject premierResultat = results.get(0).getAsJsonObject();
+
+                    double latitude = premierResultat.get("latitude").getAsDouble();
+                    double longitude = premierResultat.get("longitude").getAsDouble();
+                    return new double[]{latitude, longitude};
+                }
+            }
+
+            throw new RuntimeException("Aucune coordonnée trouvée pour la ville : " + ville);
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de la récupération des coordonnées pour la ville : " + ville, e);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
