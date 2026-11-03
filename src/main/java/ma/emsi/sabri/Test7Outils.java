@@ -22,6 +22,7 @@ public class Test7Outils {
                 .apiKey(llmKey)
                 .modelName("gemini-3.5-flash-lite")
                 .temperature(0.3)
+                .logRequestsAndResponses(true)
                 .build();
 
         // Création de l'assistant conversationnel, avec une mémoire.
